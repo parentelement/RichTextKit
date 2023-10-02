@@ -19,7 +19,7 @@ using Topten.RichTextKit.Utils;
 namespace Topten.RichTextKit
 {
     /// <summary>
-    /// Represets a style run - a logical run of characters all with the same
+    /// Represents a style run - a logical run of characters all with the same
     /// style.
     /// </summary>
     public class StyleRun : IRun
