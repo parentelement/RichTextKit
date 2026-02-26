@@ -1097,6 +1097,29 @@ namespace Topten.RichTextKit.Editor
         }
 
         /// <summary>
+        /// Sets the block indent for paragraphs in the given selection to the exact supplied value.
+        /// Unlike AdjustParagraphIndent, this does not clamp against ContentWidth and is safe
+        /// to call before the paragraph has been laid out (e.g. during import).
+        /// </summary>
+        public void SetBlockIndent(TextRange selection, float value)
+        {
+            if (selection.IsRange)
+            {
+                var range = GetParagraphsForSelection(selection);
+                for (var i = range.Start; i <= range.End; i++)
+                    _paragraphs[i].BlockIndent = value;
+            }
+            else
+            {
+                var index = GetParagraphForCodePointIndex(selection.CaretPosition, out int _);
+                _paragraphs[index].BlockIndent = value;
+            }
+
+            InvalidateLayout();
+            FireDocumentRedraw();
+        }
+
+        /// <summary>
         /// Sets the indent of the paragraph at the given caret position to the supplied amount
         /// </summary>
         /// <param name="position">The caret position used to location the target paragraph</param>
@@ -1126,6 +1149,99 @@ namespace Topten.RichTextKit.Editor
 
             InvalidateLayout();
 
+            FireDocumentRedraw();
+        }
+
+        /// <summary>
+        /// Directly sets both the list type and list level for paragraphs in the given selection,
+        /// without any toggle logic and without clamping the level against any delta.
+        /// Safe to call during import where paragraph style is inherited from the previous paragraph.
+        /// </summary>
+        public void SetListStyleAndLevel(TextRange selection, ListType type, int level)
+        {
+            if (selection.IsRange)
+            {
+                var range = GetParagraphsForSelection(selection);
+                for (var i = range.Start; i <= range.End; i++)
+                {
+                    _paragraphs[i].ListType  = type;
+                    _paragraphs[i].ListLevel = type == ListType.None ? 0 : Math.Clamp(level, 0, 9);
+                }
+            }
+            else
+            {
+                var index = GetParagraphForCodePointIndex(selection.CaretPosition, out int _);
+                _paragraphs[index].ListType  = type;
+                _paragraphs[index].ListLevel = type == ListType.None ? 0 : Math.Clamp(level, 0, 9);
+            }
+
+            InvalidateLayout();
+            FireDocumentRedraw();
+        }
+
+        /// <summary>
+        /// Sets the list style for paragraphs in the given selection
+        /// </summary>
+        /// <param name="selection">The selection identifying which paragraphs to change</param>
+        /// <param name="type">The list type to apply</param>
+        public void SetListStyle(TextRange selection, ListType type)
+        {
+            if (selection.IsRange)
+            {
+                var range = GetParagraphsForSelection(selection);
+                for (var i = range.Start; i <= range.End; i++)
+                {
+                    var para = _paragraphs[i];
+                    para.ListType = type;
+                    para.ListLevel = type == ListType.None ? 0 : para.ListLevel;
+                }
+            }
+            else
+            {
+                var index = GetParagraphForCodePointIndex(selection.CaretPosition, out int _);
+                var para = _paragraphs[index];
+                para.ListType = type;
+                if (type == ListType.None) para.ListLevel = 0;
+            }
+
+            InvalidateLayout();
+            FireDocumentRedraw();
+        }
+
+        /// <summary>
+        /// Returns true if the paragraph at the caret position contains no text (only the paragraph separator)
+        /// </summary>
+        public bool IsCurrentParagraphEmpty(TextRange selection)
+        {
+            Layout();
+            var index = GetParagraphForCodePointIndex(selection.CaretPosition, out int _);
+            return _paragraphs[index].Length <= 1;
+        }
+
+        /// <summary>
+        /// Adjusts the list nesting level for paragraphs in the given selection by the specified delta
+        /// </summary>
+        public void SetListLevel(TextRange selection, int delta)
+        {
+            if (selection.IsRange)
+            {
+                var range = GetParagraphsForSelection(selection);
+                for (var i = range.Start; i <= range.End; i++)
+                {
+                    var para = _paragraphs[i];
+                    if (para.ListType != ListType.None)
+                        para.ListLevel = Math.Clamp(para.ListLevel + delta, 0, 9);
+                }
+            }
+            else
+            {
+                var index = GetParagraphForCodePointIndex(selection.CaretPosition, out int _);
+                var para = _paragraphs[index];
+                if (para.ListType != ListType.None)
+                    para.ListLevel = Math.Clamp(para.ListLevel + delta, 0, 9);
+            }
+
+            InvalidateLayout();
             FireDocumentRedraw();
         }
 
@@ -1168,13 +1284,15 @@ namespace Topten.RichTextKit.Editor
 
                 alignment = para.TextBlock?.Alignment == TextAlignment.Auto ? DefaultAlignment : para.TextBlock?.Alignment;
 
-                return new SelectionInfo(style.Value, alignment, para.TextBlock.LineSpacing);
+                return new SelectionInfo(style.Value, alignment, para.TextBlock.LineSpacing, para.ListType);
             }
 
 
             var range = GetParagraphsForSelection(selection);
 
             float? lineSpacing = null;
+            ListType? listType = null;
+            bool listTypeSet = false;
 
             for (var i = range.Start; i <= range.End; i++)
             {
@@ -1186,12 +1304,18 @@ namespace Topten.RichTextKit.Editor
                 if (range.End == range.Start || i == range.Start)
                 {
                     lineSpacing = block.LineSpacing;
+                    listType = paragraph.ListType;
+                    listTypeSet = true;
                 }
                 else
                 {
                     if (lineSpacing != null && block.LineSpacing != lineSpacing)
                     {
                         lineSpacing = null;
+                    }
+                    if (listTypeSet && listType != paragraph.ListType)
+                    {
+                        listType = null;
                     }
                 }
 
@@ -1222,7 +1346,7 @@ namespace Topten.RichTextKit.Editor
                 }
             }
 
-            return new SelectionInfo(style.Value, alignment, lineSpacing);
+            return new SelectionInfo(style.Value, alignment, lineSpacing, listType);
         }
 
         IntRange GetParagraphsForSelection(TextRange selection)
@@ -1370,11 +1494,30 @@ namespace Topten.RichTextKit.Editor
 
             _measuredWidth = 0;
 
+            // Counter per nesting level for numbered lists
+            var numberedCounters = new int[10];
+
             // Layout paragraphs
             for (int i = 0; i < _paragraphs.Count; i++)
             {
                 // Get the paragraph
                 var para = _paragraphs[i];
+
+                // Assign list item numbers before layout so the Paint method has correct values
+                if (para is TextParagraph tpNum)
+                {
+                    if (tpNum.ListType == ListType.Numbered)
+                    {
+                        numberedCounters[tpNum.ListLevel]++;
+                        for (int l = tpNum.ListLevel + 1; l < numberedCounters.Length; l++)
+                            numberedCounters[l] = 0;
+                        tpNum.ListItemNumber = numberedCounters[tpNum.ListLevel];
+                    }
+                    else if (tpNum.ListType == ListType.None)
+                    {
+                        Array.Clear(numberedCounters, 0, numberedCounters.Length);
+                    }
+                }
 
                 // Layout
                 para.Layout(this);
@@ -1382,12 +1525,13 @@ namespace Topten.RichTextKit.Editor
                 var positionOffset = 0f;
 
                 // Position
-                if(para.BlockIndent != 0)
+                var totalIndent = para.BlockIndent + para.ListExtraIndent;
+                if (totalIndent != 0)
                 {
                     //TODO:  This should be updated to account for RTL text in which Auto would be TextAlignment.Right
                     if(para.TextBlock?.Alignment == TextAlignment.Left || para.TextBlock?.Alignment == TextAlignment.Auto)
                     {
-                        positionOffset = para.BlockIndent;
+                        positionOffset = totalIndent;
                     }
                 }
 

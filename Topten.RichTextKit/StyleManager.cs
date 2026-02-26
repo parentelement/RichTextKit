@@ -301,8 +301,11 @@ namespace Topten.RichTextKit
             var rTextDirection = textDirection ?? _currentStyle.TextDirection;
             var rReplacementCharacter = replacementCharacter ?? _currentStyle.ReplacementCharacter;
 
-            // Format key
-            var key = $"{rFontFamily}.{rFontSize}.{rFontWeight}.{fontWidth}.{rFontItalic}.{rUnderline}.{rStrikeThrough}.{rLineHeight}.{rTextColor}.{rBackgroundColor}.{rHaloColor}.{rHaloWidth}.{rHaloBlur}.{rLetterSpacing}.{rFontVariant}.{rTextDirection}.{rReplacementCharacter}";
+            // Build struct key — value equality and GetHashCode avoid string allocation
+            var key = new StyleKey(rFontFamily, rFontSize, rFontWeight, rFontWidth, rFontItalic,
+                rUnderline, rStrikeThrough, rLineHeight, rTextColor, rBackgroundColor,
+                rHaloColor, rHaloWidth, rHaloBlur, rLetterSpacing, rFontVariant,
+                rTextDirection, rReplacementCharacter);
 
             // Look up...
             if (!_styleMap.TryGetValue(key, out var style))
@@ -355,7 +358,29 @@ namespace Topten.RichTextKit
             public StyleManager Owner;
         }
 
-        Dictionary<string, Style> _styleMap = new Dictionary<string, Style>();
+        /// <summary>
+        /// Value-equality key for the style cache, replacing the allocating string-format key.
+        /// </summary>
+        readonly record struct StyleKey(
+            string FontFamily,
+            float? FontSize,
+            int? FontWeight,
+            SKFontStyleWidth? FontWidth,
+            bool? FontItalic,
+            UnderlineStyle? Underline,
+            StrikeThroughStyle? StrikeThrough,
+            float? LineHeight,
+            SKColor? TextColor,
+            SKColor? BackgroundColor,
+            SKColor? HaloColor,
+            float? HaloWidth,
+            float? HaloBlur,
+            float? LetterSpacing,
+            FontVariant? FontVariant,
+            TextDirection? TextDirection,
+            char? ReplacementCharacter);
+
+        Dictionary<StyleKey, Style> _styleMap = new Dictionary<StyleKey, Style>();
         Stack<IStyle> _userStack = new Stack<IStyle>();
         IStyle _defaultStyle = new DefaultStyle();
         IStyle _currentStyle;

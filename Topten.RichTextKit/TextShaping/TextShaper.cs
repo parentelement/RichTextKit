@@ -16,6 +16,7 @@
 using HarfBuzzSharp;
 using SkiaSharp;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -29,9 +30,10 @@ namespace Topten.RichTextKit
     internal class TextShaper : IDisposable
     {
         /// <summary>
-        /// Cache of shapers for typefaces
+        /// Cache of shapers for typefaces. ConcurrentDictionary avoids a global lock
+        /// on every shaping operation; GetOrAdd provides thread-safe lazy construction.
         /// </summary>
-        static Dictionary<SKTypeface, TextShaper> _shapers = new Dictionary<SKTypeface, TextShaper>();
+        static ConcurrentDictionary<SKTypeface, TextShaper> _shapers = new ConcurrentDictionary<SKTypeface, TextShaper>();
 
         /// <summary>
         /// Get the text shaper for a particular type face
@@ -40,16 +42,7 @@ namespace Topten.RichTextKit
         /// <returns>A TextShaper</returns>
         public static TextShaper ForTypeface(SKTypeface typeface)
         {
-            lock (_shapers)
-            {
-                if (!_shapers.TryGetValue(typeface, out var shaper))
-                {
-                    shaper = new TextShaper(typeface);
-                    _shapers.Add(typeface, shaper);
-                }
-
-                return shaper;
-            }
+            return _shapers.GetOrAdd(typeface, static tf => new TextShaper(tf));
         }
 
         /// <summary>

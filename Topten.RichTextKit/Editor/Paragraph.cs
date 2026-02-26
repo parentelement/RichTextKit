@@ -125,6 +125,8 @@ namespace Topten.RichTextKit.Editor
             this.MarginTop = other.MarginTop;
             this.MarginRight = other.MarginRight;
             this.MarginBottom = other.MarginBottom;
+            this.ListType = other.ListType;
+            this.ListLevel = other.ListLevel;
         }
 
         /// <summary>
@@ -176,6 +178,22 @@ namespace Topten.RichTextKit.Editor
         /// The block indent of the paragraph
         /// </summary>
         public float BlockIndent { get; internal set; }
+
+        /// <summary>
+        /// The list type for this paragraph (None, Bullet, or Numbered)
+        /// </summary>
+        public ListType ListType { get; internal set; }
+
+        /// <summary>
+        /// The nesting level for list items (0-based)
+        /// </summary>
+        public int ListLevel { get; internal set; }
+
+        /// <summary>
+        /// The extra indentation added when this paragraph is a list item.
+        /// Override in subclasses that support list rendering.
+        /// </summary>
+        public virtual float ListExtraIndent => 0f;
 
         // Explicit implementation of IRun so we can use RunExtensions
         // with the paragraphs collection.

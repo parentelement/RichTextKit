@@ -72,7 +72,7 @@ namespace Topten.RichTextKit
                 {
                     _renderWidth = value;
                     if (!_maxWidth.HasValue)
-                        InvalidateLayout();
+                        InvalidateAlignmentOnly(); // RenderWidth only shifts alignment; no re-shaping needed
                 }
             }
         }
@@ -167,7 +167,7 @@ namespace Topten.RichTextKit
                 if (_textAlignment != value)
                 {
                     _textAlignment = value;
-                    InvalidateLayout();
+                    InvalidateAlignmentOnly();
                 }
             }
         }
@@ -336,8 +336,17 @@ namespace Topten.RichTextKit
             {
                 if (!_needsLayout) return; //double check
 
+                // Fast path: only alignment changed, lines and glyphs are already correct.
+                if (!_needsFullLayout)
+                {
+                    ApplyAlignmentOnly();
+                    _needsLayout = false;
+                    return;
+                }
+
                 _needsLayout = false;
-                
+                _needsFullLayout = false;
+
                 // Resolve max width/height
                 _maxWidthResolved = (_maxWidth ?? float.MaxValue);
                 _maxHeightResolved = _maxHeight ?? float.MaxValue;
@@ -368,6 +377,48 @@ namespace Topten.RichTextKit
                     FinalizeLines();
                 }
             }
+        }
+
+        /// <summary>
+        /// Fast alignment-only update: recomputes each line's x-offset and moves glyphs
+        /// without repeating shaping or line-breaking.
+        /// </summary>
+        void ApplyAlignmentOnly()
+        {
+            var ta = ResolveTextAlignment();
+            float width = _maxWidth ?? _renderWidth ?? _measuredWidth;
+            for (int lineIndex = 0; lineIndex < _lines.Count; lineIndex++)
+            {
+                var line = _lines[lineIndex];
+                float newXAdjust = 0;
+                if (lineIndex == 0)
+                    newXAdjust = FirstLineIndent;
+
+                switch (ta)
+                {
+                    case TextAlignment.Right:
+                        newXAdjust = width - line.Width;
+                        break;
+                    case TextAlignment.Center:
+                        newXAdjust = (width - line.Width) / 2;
+                        break;
+                }
+
+                float delta = newXAdjust - line.XAlignmentOffset;
+                if (delta != 0)
+                {
+                    line.XAlignmentOffset = newXAdjust;
+                    for (int frIndex = 0; frIndex < line.Runs.Count; frIndex++)
+                    {
+                        var fr = line.Runs[frIndex];
+                        fr.XCoord += delta;
+                        fr.MoveGlyphs(delta, 0);
+                    }
+                }
+            }
+            // Glyph positions changed so any cached overhang is stale
+            _leftOverhang = null;
+            _rightOverhang = null;
         }
 
         /// <summary>
@@ -749,22 +800,35 @@ namespace Topten.RichTextKit
         }
 
         /// <summary>
-        /// Build map of all caret positions 
+        /// Build map of all caret positions
         /// </summary>
         void BuildCaretIndicies()
         {
             Layout();
             if (_caretIndicies.Count == 0)
             {
-                foreach (var r in _lines.SelectMany(x => x.Runs))
+                // Collect cluster indices without LINQ to avoid intermediate allocations
+                for (int li = 0; li < _lines.Count; li++)
                 {
-                    for (int i = 0; i < r.Clusters.Length; i++)
+                    var runs = _lines[li].Runs;
+                    for (int ri = 0; ri < runs.Count; ri++)
                     {
-                        _caretIndicies.Add(r.Clusters[i]);
+                        var clusters = runs[ri].Clusters;
+                        for (int ci = 0; ci < clusters.Length; ci++)
+                            _caretIndicies.Add(clusters[ci]);
                     }
                 }
                 _caretIndicies.Add(MeasuredLength);
-                _caretIndicies = _caretIndicies.OrderBy(x => x).Distinct().ToList();
+
+                // Sort in-place, then deduplicate without creating a new list
+                _caretIndicies.Sort();
+                int write = 0;
+                for (int read = 0; read < _caretIndicies.Count; read++)
+                {
+                    if (write == 0 || _caretIndicies[read] != _caretIndicies[write - 1])
+                        _caretIndicies[write++] = _caretIndicies[read];
+                }
+                _caretIndicies.RemoveRange(write, _caretIndicies.Count - write);
             }
         }
 
@@ -885,7 +949,7 @@ namespace Topten.RichTextKit
             // Setup caret coordinates
             ci.CaretXCoord = ci.CodePointIndex < 0 ? 0 : fr.GetXCoordOfCodePointIndex(ci.CodePointIndex);
             ci.CaretRectangle = CalculateCaretRectangle(ci, fr);
-            ci.LineIndex = _lines.IndexOf(fr.Line);
+            ci.LineIndex = fr.Line.LineIndex;
 
             return ci;
         }
@@ -931,14 +995,12 @@ namespace Topten.RichTextKit
             if (ci.CodePointIndex > fr.Start)
                 return fr;
 
-            // Try to get the previous font run in this line
-            var lineRuns = fr.Line.Runs as List<FontRun>;
-            int index = lineRuns.IndexOf(fr);
-            if (index <= 0)
+            // Try to get the previous font run in this line using the cached index
+            if (fr.IndexInLine <= 0)
                 return fr;
 
             // Use the previous font run
-            return lineRuns[index - 1];
+            return fr.Line.Runs[fr.IndexInLine - 1];
         }
 
         /// <summary>
@@ -974,21 +1036,40 @@ namespace Topten.RichTextKit
         }
 
         /// <summary>
-        /// Invalidate the layout
+        /// Invalidate the entire layout — shaping, line-breaking, and alignment.
+        /// Called when text content, styles, or structural properties change.
         /// </summary>
         void InvalidateLayout()
         {
             // Make sure style runs are valid (debug only)
             _styleRuns.CheckValid(_codePoints.Length);
 
-            // Set layout flag
             _needsLayout = true;
+            _needsFullLayout = true;
         }
 
         /// <summary>
-        /// Set if the current layout is dirty
+        /// Invalidate only the alignment pass. Called when only Alignment or RenderWidth
+        /// changes, allowing FinalizeLines to be re-run without repeating shaping or
+        /// line-breaking.
+        /// </summary>
+        void InvalidateAlignmentOnly()
+        {
+            _needsLayout = true;
+            // Leave _needsFullLayout unchanged: if a full rebuild is already pending it
+            // remains pending; if the layout was clean, only alignment is dirty.
+        }
+
+        /// <summary>
+        /// True if any layout work is needed on the next Layout() call.
         /// </summary>
         bool _needsLayout = true;
+
+        /// <summary>
+        /// True if a full rebuild (shaping + line-breaking + alignment) is required.
+        /// False means only the alignment pass needs to be repeated.
+        /// </summary>
+        bool _needsFullLayout = true;
 
         /// <summary>
         /// Amount to indent the first line of the paragraph text.
@@ -1880,41 +1961,44 @@ namespace Topten.RichTextKit
         void FinalizeLines()
         {
             // Work out the measured width
-            foreach (var l in _lines)
+            for (int i = 0; i < _lines.Count; i++)
             {
-                if (l.Width > _measuredWidth)
-                    _measuredWidth = l.Width;
+                if (_lines[i].Width > _measuredWidth)
+                    _measuredWidth = _lines[i].Width;
             }
 
             var ta = ResolveTextAlignment();
-            foreach (var line in _lines)
-            {
-                // Work out x-alignement adjust for this line
-                float xAdjust = 0;
+            float layoutWidth = _maxWidth ?? _renderWidth ?? _measuredWidth;
 
-                //TODO:  Calculate xAdjust here to render indent of the first line of a paragraph
-                //TODO:  Do an index iteration instead of a foreach and check for i == 0 instead of reference equality
-                if (line == _lines[0])
-                {
+            for (int lineIndex = 0; lineIndex < _lines.Count; lineIndex++)
+            {
+                var line = _lines[lineIndex];
+                line.LineIndex = lineIndex;
+
+                // Work out x-alignment adjust for this line
+                float xAdjust = 0;
+                if (lineIndex == 0)
                     xAdjust = FirstLineIndent;
-                }
 
                 switch (ta)
                 {
                     case TextAlignment.Right:
-                        xAdjust = (_maxWidth ?? _renderWidth ?? _measuredWidth) - line.Width;
+                        xAdjust = layoutWidth - line.Width;
                         break;
-
                     case TextAlignment.Center:
-                        xAdjust = ((_maxWidth ?? _renderWidth ?? _measuredWidth) - line.Width) / 2;
+                        xAdjust = (layoutWidth - line.Width) / 2;
                         break;
                 }
 
-                // Position each run
+                // Store for fast alignment-only updates
+                line.XAlignmentOffset = xAdjust;
+
+                // Position each run and stamp the cached indices
                 for (int frIndex = 0; frIndex < line.Runs.Count; frIndex++)
                 {
                     var fr = line.Runs[frIndex];
                     fr.Line = line;
+                    fr.IndexInLine = frIndex;
                     fr.XCoord += xAdjust;
                     fr.MoveGlyphs(fr.XCoord, line.YCoord + line.BaseLine);
                 }
@@ -2069,16 +2153,11 @@ namespace Topten.RichTextKit
                     }
                     else
                     {
-                        // Split it
+                        // Split it; the right-hand remainder is not assigned to any line
+                        // and will be cleaned up at the end of layout. Return it to the
+                        // pool immediately to avoid a stale reference in _fontRuns.
                         var remaining = fr.Split(pos);
-
-                        // Keep the remaining part in case we need it later (not sure why,
-                        // but seems wise).
-                        if (!postLayout)
-                        {
-                            _fontRuns.Insert(_fontRuns.IndexOf(fr) + 1, remaining);
-                            //                            _fontRuns.Remove(fr);
-                        }
+                        FontRun.Pool.Value.Return(remaining);
                     }
 
                     break;

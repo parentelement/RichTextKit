@@ -15,6 +15,7 @@
 
 using SkiaSharp;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Topten.RichTextKit.Editor
 {
@@ -23,6 +24,8 @@ namespace Topten.RichTextKit.Editor
     /// </summary>
     public class TextParagraph : Paragraph
     {
+        const float kListIndentPerLevel = 30f;
+        const float kBulletWidth = 20f;
         /// <summary>
         /// Constructs a new TextParagraph
         /// </summary>
@@ -42,6 +45,15 @@ namespace Topten.RichTextKit.Editor
             CopyStyleFrom(source);
         }
 
+        /// <summary>
+        /// The 1-based item number for numbered list paragraphs (assigned by layout loop)
+        /// </summary>
+        internal int ListItemNumber;
+
+        /// <inheritdoc />
+        public override float ListExtraIndent =>
+            ListType != ListType.None ? (ListLevel + 1) * kListIndentPerLevel : 0f;
+
         /// <inheritdoc />
         public override void Layout(TextDocument owner)
         {
@@ -55,7 +67,15 @@ namespace Topten.RichTextKit.Editor
                 _textBlock.RenderWidth -= BlockIndent;
             }
 
-            _textBlock.FirstLineIndent = owner.FirstLineIndent;
+            if (ListType != ListType.None)
+            {
+                _textBlock.RenderWidth -= ListExtraIndent;
+                _textBlock.FirstLineIndent = 0f;
+            }
+            else
+            {
+                _textBlock.FirstLineIndent = owner.FirstLineIndent;
+            }
 
             // For layout just need to set the appropriate layout width on the text block
             if (owner.LineWrap)
@@ -66,8 +86,40 @@ namespace Topten.RichTextKit.Editor
                 _textBlock.MaxWidth = null;
         }
 
+        static string GetBulletChar(int level) => level switch
+        {
+            0 => "\u2022",   // •
+            1 => "\u25E6",  // ◦
+            _ => "\u25AA",  // ▪
+        };
+
         /// <inheritdoc />
-        public override void Paint(SKCanvas canvas, TextPaintOptions options) => _textBlock.Paint(canvas, new SKPoint(ContentXCoord, ContentYCoord), options);
+        public override void Paint(SKCanvas canvas, TextPaintOptions options)
+        {
+            _textBlock.Paint(canvas, new SKPoint(ContentXCoord, ContentYCoord), options);
+
+            if (ListType != ListType.None && _textBlock.Lines.Count > 0)
+            {
+                var firstLine = _textBlock.Lines[0];
+                var baseline = ContentYCoord + firstLine.BaseLine;
+
+                var firstStyle = _textBlock.StyleRuns?.FirstOrDefault()?.Style;
+                var fontFamily = firstStyle?.FontFamily ?? "Arial";
+                var fontSize = (float)(firstStyle?.FontSize ?? 14f);
+                var textColor = firstStyle?.TextColor ?? SKColors.Black;
+
+                var bulletText = ListType == ListType.Bullet
+                    ? GetBulletChar(ListLevel)
+                    : $"{ListItemNumber}.";
+
+                using var skFont = new SKFont(SKTypeface.FromFamilyName(fontFamily), fontSize);
+                using var skPaint = new SKPaint { Color = textColor, IsAntialias = true };
+
+                var bulletWidth = skFont.MeasureText(bulletText, skPaint);
+                var bulletX = ContentXCoord - 4f - bulletWidth;
+                canvas.DrawText(bulletText, bulletX, baseline, skFont, skPaint);
+            }
+        }
         
         /// <inheritdoc />
         public override CaretInfo GetCaretInfo(CaretPosition position) => _textBlock.GetCaretInfo(position);
@@ -105,6 +157,10 @@ namespace Topten.RichTextKit.Editor
             base.CopyStyleFrom(other);
             _textBlock.Alignment = other.TextBlock.Alignment;
             _textBlock.BaseDirection = other.TextBlock.BaseDirection;
+            if (other is TextParagraph tp)
+            {
+                ListItemNumber = tp.ListItemNumber;
+            }
         }
 
         // Private attributes

@@ -53,16 +53,26 @@ namespace Topten.RichTextKit
         }
 
         /// <summary>
+        /// The index of this line within TextBlock.Lines, set during FinalizeLines.
+        /// </summary>
+        internal int LineIndex;
+
+        /// <summary>
+        /// The x-alignment offset applied to this line during FinalizeLines,
+        /// used for fast alignment-only updates without full re-layout.
+        /// </summary>
+        internal float XAlignmentOffset;
+
+        /// <summary>
         /// Gets the next line in this text block, or null if this is the last line.
         /// </summary>
         public TextLine NextLine
         {
             get
             {
-                int index = (TextBlock.Lines as List<TextLine>).IndexOf(this);
-                if (index < 0 || index + 1 >= TextBlock.Lines.Count)
+                if (LineIndex + 1 >= TextBlock.Lines.Count)
                     return null;
-                return TextBlock.Lines[index + 1];
+                return TextBlock.Lines[LineIndex + 1];
             }
         }
 
@@ -73,10 +83,9 @@ namespace Topten.RichTextKit
         {
             get
             {
-                int index = (TextBlock.Lines as List<TextLine>).IndexOf(this);
-                if (index <= 0)
+                if (LineIndex <= 0)
                     return null;
-                return TextBlock.Lines[index - 1];
+                return TextBlock.Lines[LineIndex - 1];
             }
         }
 
@@ -397,6 +406,8 @@ namespace Topten.RichTextKit
             Cleaner = (r) =>
             {
                 r.TextBlock = null;
+                r.LineIndex = 0;
+                r.XAlignmentOffset = 0;
                 r.RunsInternal.Clear();
             }
         });

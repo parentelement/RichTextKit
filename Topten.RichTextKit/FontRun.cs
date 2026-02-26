@@ -157,9 +157,14 @@ namespace Topten.RichTextKit
         public float XCoord;
 
         /// <summary>
-        /// The line that owns this font run 
+        /// The line that owns this font run
         /// </summary>
         public TextLine Line { get; internal set; }
+
+        /// <summary>
+        /// The index of this run within Line.Runs, set during FinalizeLines.
+        /// </summary>
+        internal int IndexInLine;
 
         /// <summary>
         /// Get the next font run from this one
@@ -168,11 +173,9 @@ namespace Topten.RichTextKit
         {
             get
             {
-                var allRuns = Line.TextBlock.FontRuns as List<FontRun>; 
-                int index = allRuns.IndexOf(this);
-                if (index < 0 || index + 1 >= Line.Runs.Count)
+                if (IndexInLine + 1 >= Line.Runs.Count)
                     return null;
-                return Line.Runs[index + 1];
+                return Line.Runs[IndexInLine + 1];
             }
         }
 
@@ -183,11 +186,9 @@ namespace Topten.RichTextKit
         {
             get
             {
-                var allRuns = Line.TextBlock.FontRuns as List<FontRun>; 
-                int index = allRuns.IndexOf(this);
-                if (index - 1 < 0)
+                if (IndexInLine <= 0)
                     return null;
-                return Line.Runs[index - 1];
+                return Line.Runs[IndexInLine - 1];
             }
         }
 
@@ -775,6 +776,7 @@ namespace Topten.RichTextKit
             Style = null;
             Typeface = null;
             Line = null;
+            IndexInLine = 0;
             _textBlob = null;
             _font = null;
         }
