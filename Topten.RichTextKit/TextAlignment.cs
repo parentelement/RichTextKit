@@ -41,5 +41,11 @@ namespace Topten.RichTextKit
         /// specified in which case it right aligns to the widest line in the text block.
         /// </summary>
         Right,
+
+        /// <summary>
+        /// Fully justifies text so each non-terminal line is stretched to fill the available width.
+        /// The last line of each paragraph remains left-aligned.
+        /// </summary>
+        Justified,
     }
 }

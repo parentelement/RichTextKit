@@ -166,8 +166,14 @@ namespace Topten.RichTextKit
             {
                 if (_textAlignment != value)
                 {
+                    var oldValue = _textAlignment;
                     _textAlignment = value;
-                    InvalidateAlignmentOnly();
+                    // Justified modifies glyph positions inside runs so the fast
+                    // alignment-only path cannot be used when switching to or from it.
+                    if (value == TextAlignment.Justified || oldValue == TextAlignment.Justified)
+                        InvalidateLayout();
+                    else
+                        InvalidateAlignmentOnly();
                 }
             }
         }
@@ -2000,6 +2006,18 @@ namespace Topten.RichTextKit
                     fr.Line = line;
                     fr.IndexInLine = frIndex;
                     fr.XCoord += xAdjust;
+                }
+
+                // For justified alignment, spread inter-word spaces before stamping
+                // absolute glyph positions so MoveGlyphs sees the correct XCoords.
+                // Subtract xAdjust (e.g. FirstLineIndent) so the available width for
+                // spreading reflects only the space to the right of any indent.
+                if (ta == TextAlignment.Justified)
+                    JustifyLine(line, layoutWidth - xAdjust, lineIndex);
+
+                for (int frIndex = 0; frIndex < line.Runs.Count; frIndex++)
+                {
+                    var fr = line.Runs[frIndex];
                     fr.MoveGlyphs(fr.XCoord, line.YCoord + line.BaseLine);
                 }
             }
@@ -2010,6 +2028,103 @@ namespace Topten.RichTextKit
             {
                 _fontRuns.RemoveAt(_fontRuns.Count - 1);
             }
+        }
+
+        /// <summary>
+        /// Spreads inter-word space on a line so its content fills <paramref name="layoutWidth"/>.
+        /// The last line of each paragraph (ending with \n, \u2029, or the final line of the
+        /// block) is left-aligned and not stretched.
+        /// </summary>
+        void JustifyLine(TextLine line, float layoutWidth, int lineIndex)
+        {
+            float spaceToFill = layoutWidth - line.Width;
+            if (spaceToFill <= 0)
+                return;
+
+            // Determine whether this is the terminal line of a paragraph.
+            // It is terminal when it ends with a hard line-break (\n or \u2029)
+            // or when it is the very last line of the block.
+            bool isTerminalLine = (lineIndex == _lines.Count - 1);
+            if (!isTerminalLine)
+            {
+                // Check the last content code point on this line.
+                foreach (var fr in line.RunsInternal)
+                {
+                    if (fr.RunKind == FontRunKind.TrailingWhitespace)
+                        break;
+                    var cps = fr.CodePoints;
+                    if (cps.Length > 0)
+                    {
+                        int lastCp = cps[cps.Length - 1];
+                        if (lastCp == '\n' || lastCp == 0x2029)
+                        {
+                            isTerminalLine = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (isTerminalLine)
+                return;
+
+            // Count inter-word spaces across all non-trailing-whitespace runs.
+            int spaceCount = 0;
+            foreach (var fr in line.RunsInternal)
+            {
+                if (fr.RunKind == FontRunKind.TrailingWhitespace)
+                    break;
+                var cps = fr.CodePoints;
+                for (int i = 0; i < cps.Length; i++)
+                    if (cps[i] == ' ')
+                        spaceCount++;
+            }
+            if (spaceCount == 0)
+                return;
+
+            float extraPerSpace = spaceToFill / spaceCount;
+            float runShift = 0; // cumulative XCoord shift applied to runs so far
+
+            foreach (var fr in line.RunsInternal)
+            {
+                // Shift this run's XCoord by everything accumulated from previous runs.
+                fr.XCoord += runShift;
+
+                if (fr.RunKind == FontRunKind.TrailingWhitespace)
+                    break;
+
+                // Spread glyphs within this run and update RelativeCodePointXCoords
+                // so that hit-testing remains accurate on justified lines.
+                var cps = fr.CodePoints;
+                float intraShift = 0; // accumulated shift within this run
+
+                // Build per-glyph accumulated shift, then apply.
+                for (int g = 0; g < fr.GlyphPositions.Length; g++)
+                {
+                    fr.GlyphPositions[g].X += intraShift;
+
+                    // Advance intraShift after a space glyph.
+                    int cpOffset = fr.Clusters[g] - fr.Start;
+                    if (cpOffset >= 0 && cpOffset < cps.Length && cps[cpOffset] == ' ')
+                        intraShift += extraPerSpace;
+                }
+
+                // Update RelativeCodePointXCoords so GetXCoordOfCodePointIndex() is correct.
+                // Walk code points in order; when we encounter a space, bump the accumulated offset.
+                float cpShift = 0;
+                for (int ci = 0; ci < fr.RelativeCodePointXCoords.Length; ci++)
+                {
+                    fr.RelativeCodePointXCoords[ci] += cpShift;
+                    if (ci < cps.Length && cps[ci] == ' ')
+                        cpShift += extraPerSpace;
+                }
+
+                // Widen the run to account for the added spaces.
+                fr.Width += intraShift;
+                runShift += intraShift;
+            }
+
+            // Update the line width so the layout reflects the new full width.
+            line.Width += runShift;
         }
 
         /// <summary>
