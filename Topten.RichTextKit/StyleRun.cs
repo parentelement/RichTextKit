@@ -71,6 +71,17 @@ namespace Topten.RichTextKit
             internal set;
         }
 
+        /// <summary>
+        /// An optional inline object (e.g. an image) associated with this run.
+        /// When non-null, this run covers exactly one U+FFFC code point and the
+        /// inline object is used for sizing and painting instead of normal glyphs.
+        /// </summary>
+        public IInlineObject InlineObject
+        {
+            get;
+            internal set;
+        }
+
         int IRun.Offset => Start;
         int IRun.Length => Length;
 
@@ -85,6 +96,7 @@ namespace Topten.RichTextKit
             {
                 r.CodePointBuffer = null;
                 r.Style = null;
+                r.InlineObject = null;
             }
         });
     }

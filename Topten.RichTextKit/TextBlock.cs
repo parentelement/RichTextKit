@@ -227,7 +227,10 @@ namespace Topten.RichTextKit
             foreach (var subRun in _styleRuns.GetInterectingRuns(from, length))
             {
                 var sr = _styleRuns[subRun.Index];
-                other.AddText(sr.CodePoints.SubSlice(subRun.Offset, subRun.Length), sr.Style);
+                if (sr.InlineObject != null)
+                    other.AddInlineObject(sr.InlineObject, sr.Style);
+                else
+                    other.AddText(sr.CodePoints.SubSlice(subRun.Offset, subRun.Length), sr.Style);
             }
 
             return other;
@@ -819,9 +822,19 @@ namespace Topten.RichTextKit
                     var runs = _lines[li].Runs;
                     for (int ri = 0; ri < runs.Count; ri++)
                     {
-                        var clusters = runs[ri].Clusters;
-                        for (int ci = 0; ci < clusters.Length; ci++)
-                            _caretIndicies.Add(clusters[ci]);
+                        var run = runs[ri];
+                        if (run.RunKind == FontRunKind.InlineObject)
+                        {
+                            // InlineObject runs have no clusters; add the run's Start position
+                            // so the caret can stop before (and after) the inline object.
+                            _caretIndicies.Add(run.Start);
+                        }
+                        else
+                        {
+                            var clusters = run.Clusters;
+                            for (int ci = 0; ci < clusters.Length; ci++)
+                                _caretIndicies.Add(clusters[ci]);
+                        }
                     }
                 }
                 _caretIndicies.Add(MeasuredLength);
@@ -1372,6 +1385,14 @@ namespace Topten.RichTextKit
             if (length == 0)
                 return;
 
+            // Inline objects bypass normal text shaping entirely
+            if (styleRun.InlineObject != null)
+            {
+                FlushUnshapedRuns();
+                _fontRuns.Add(CreateInlineObjectFontRun(styleRun, start, length, direction, style));
+                return;
+            }
+
             // Get the typeface
             var typeface = TypefaceFromStyle(style);
 
@@ -1523,6 +1544,41 @@ namespace Topten.RichTextKit
             fontRun.Descent = shaped.Descent;
             fontRun.Leading = shaped.Leading;
             fontRun.Width = shaped.EndXCoord.X;
+            return fontRun;
+        }
+
+        /// <summary>
+        /// Creates a FontRun for an inline object, bypassing HarfBuzz shaping.
+        /// </summary>
+        FontRun CreateInlineObjectFontRun(StyleRun styleRun, int start, int length, TextDirection direction, IStyle style)
+        {
+            var obj = styleRun.InlineObject;
+
+            var fontRun = FontRun.Pool.Value.Get();
+            fontRun.StyleRun = styleRun;
+            fontRun.RunKind = FontRunKind.InlineObject;
+            fontRun.InlineObject = obj;
+            fontRun.CodePointBuffer = _codePoints;
+            fontRun.Start = start;
+            fontRun.Length = length;
+            fontRun.Style = style;
+            fontRun.Direction = direction;
+            fontRun.Typeface = null;
+            fontRun.Glyphs = default;
+            fontRun.GlyphPositions = default;
+            fontRun.Clusters = default;
+
+            // Allocate a single code-point x-coordinate entry (= 0, left edge of object)
+            var xCoordSlice = _textShapingBuffers.CodePointXCoords.Add(1, false);
+            xCoordSlice[0] = 0f;
+            fontRun.RelativeCodePointXCoords = xCoordSlice;
+
+            // Ascent is negative (above baseline); image sits from baseline-height to baseline
+            fontRun.Ascent = -obj.Height;
+            fontRun.Descent = 0f;
+            fontRun.Leading = 0f;
+            fontRun.Width = obj.Width;
+
             return fontRun;
         }
 

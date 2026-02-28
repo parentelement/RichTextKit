@@ -72,6 +72,11 @@ namespace Topten.RichTextKit.Editor
                 _textBlock.RenderWidth -= ListExtraIndent;
                 _textBlock.FirstLineIndent = 0f;
             }
+            else if (_textBlock.StyleRuns.Count > 0 && _textBlock.StyleRuns[0].InlineObject != null)
+            {
+                // Inline images always align to the left margin regardless of first-line indent.
+                _textBlock.FirstLineIndent = 0f;
+            }
             else
             {
                 _textBlock.FirstLineIndent = owner.FirstLineIndent;

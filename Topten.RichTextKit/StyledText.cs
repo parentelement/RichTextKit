@@ -188,8 +188,56 @@ namespace Topten.RichTextKit
         {
             foreach (var sr in text.StyleRuns)
             {
-                AddText(sr.CodePoints, sr.Style);
+                if (sr.InlineObject != null)
+                    AddInlineObject(sr.InlineObject, sr.Style);
+                else
+                    AddText(sr.CodePoints, sr.Style);
             }
+        }
+
+        /// <summary>
+        /// Appends an inline object to this text block as a U+FFFC placeholder code point.
+        /// The inline object always gets its own isolated style run.
+        /// </summary>
+        /// <param name="obj">The inline object to append.</param>
+        /// <param name="style">The style context for sizing (e.g. baseline position).</param>
+        public void AddInlineObject(IInlineObject obj, IStyle style)
+        {
+            if (obj == null)
+                throw new ArgumentNullException(nameof(obj));
+            if (style == null)
+                throw new ArgumentNullException(nameof(style));
+
+            var utf32 = _codePoints.Add("\uFFFC");
+
+            var run = StyleRun.Pool.Value.Get();
+            run.CodePointBuffer = _codePoints;
+            run.Start = utf32.Start;
+            run.Length = utf32.Length;
+            run.Style = style;
+            run.InlineObject = obj;
+
+            _styleRuns.Add(run);
+
+            OnChanged();
+        }
+
+        /// <summary>
+        /// Inserts an inline object at the specified position as a U+FFFC placeholder code point.
+        /// The inline object always gets its own isolated style run.
+        /// </summary>
+        /// <param name="position">The code point index at which to insert.</param>
+        /// <param name="obj">The inline object to insert.</param>
+        /// <param name="style">The style context for sizing (e.g. baseline position).</param>
+        public void InsertInlineObject(int position, IInlineObject obj, IStyle style)
+        {
+            if (obj == null)
+                throw new ArgumentNullException(nameof(obj));
+            if (style == null)
+                throw new ArgumentNullException(nameof(style));
+
+            var utf32 = _codePoints.Insert(position, "\uFFFC");
+            FinishInsert(utf32, style, obj);
         }
 
         /// <summary>
@@ -201,7 +249,14 @@ namespace Topten.RichTextKit
         {
             foreach (var sr in text.StyleRuns)
             {
-                InsertText(offset, sr.CodePoints, sr.Style);
+                if (sr.InlineObject != null)
+                {
+                    InsertInlineObject(offset, sr.InlineObject, sr.Style);
+                }
+                else
+                {
+                    InsertText(offset, sr.CodePoints, sr.Style);
+                }
                 offset += sr.CodePoints.Length;
             }
         }
@@ -486,7 +541,10 @@ namespace Topten.RichTextKit
             foreach (var subRun in _styleRuns.GetInterectingRuns(from, length))
             {
                 var sr = _styleRuns[subRun.Index];
-                other.AddText(sr.CodePoints.SubSlice(subRun.Offset, subRun.Length), sr.Style);
+                if (sr.InlineObject != null)
+                    other.AddInlineObject(sr.InlineObject, sr.Style);
+                else
+                    other.AddText(sr.CodePoints.SubSlice(subRun.Offset, subRun.Length), sr.Style);
             }
 
             return other;
@@ -532,8 +590,11 @@ namespace Topten.RichTextKit
         /// </summary>
         /// <param name="utf32">The utf32 slice that was inserted</param>
         /// <param name="style">The style of the inserted text</param>
-        void FinishInsert(Slice<int> utf32, IStyle style)
+        void FinishInsert(Slice<int> utf32, IStyle style, IInlineObject inlineObject = null)
         {
+            // Inline objects always get their own isolated style run — never merged.
+            bool forceNewRun = inlineObject != null;
+
             // Update style runs
             int newRunIndex = 0;
             for (int i = 0; i < _styleRuns.Count; i++)
@@ -547,7 +608,7 @@ namespace Topten.RichTextKit
 
                 // Special case for inserting at very start of text block
                 // with no supplied style.
-                if (sr.Start == 0 && utf32.Start == 0 && style == null)
+                if (!forceNewRun && sr.Start == 0 && utf32.Start == 0 && style == null)
                 {
                     sr.Length += utf32.Length;
                     continue;
@@ -563,7 +624,7 @@ namespace Topten.RichTextKit
                 // Inserting exactly at the end of a style run?
                 if (sr.End == utf32.Start)
                 {
-                    if (style == null || style == sr.Style)
+                    if (!forceNewRun && (style == null || style == sr.Style))
                     {
                         // Extend the existing run
                         sr.Length += utf32.Length;
@@ -585,7 +646,7 @@ namespace Topten.RichTextKit
                 Debug.Assert(sr.Start < utf32.Start);
 
                 // Inserting inside an existing run
-                if (style == null || style == sr.Style)
+                if (!forceNewRun && (style == null || style == sr.Style))
                 {
                     // Extend the existing style run to cover
                     // the newly inserted text with the same style
@@ -605,6 +666,7 @@ namespace Topten.RichTextKit
                     split.Start = utf32.Start + utf32.Length;
                     split.Length = sr.End - utf32.Start;
                     split.Style = sr.Style;
+                    split.InlineObject = sr.InlineObject;
                     _styleRuns.Insert(i + 1, split);
 
                     // Shorten this part
@@ -620,20 +682,23 @@ namespace Topten.RichTextKit
             }
 
             // Create a new style run
-            if (style != null)
+            if (style != null || forceNewRun)
             {
                 var run = StyleRun.Pool.Value.Get();
                 run.CodePointBuffer = _codePoints;
                 run.Start = utf32.Start;
                 run.Length = utf32.Length;
                 run.Style = style;
-                _hasTextDirectionOverrides |= style.TextDirection != TextDirection.Auto;
+                run.InlineObject = inlineObject;
+                if (style != null)
+                    _hasTextDirectionOverrides |= style.TextDirection != TextDirection.Auto;
                 _styleRuns.Insert(newRunIndex, run);
             }
 
-            // Coalesc if necessary
-            if ((newRunIndex > 0 && _styleRuns[newRunIndex - 1].Style.IsSame(style)) ||
-                (newRunIndex + 1 < _styleRuns.Count && _styleRuns[newRunIndex + 1].Style.IsSame(style)))
+            // Coalesc if necessary (never coalesce inline objects)
+            if (!forceNewRun && style != null &&
+                ((newRunIndex > 0 && _styleRuns[newRunIndex - 1].Style.IsSame(style)) ||
+                 (newRunIndex + 1 < _styleRuns.Count && _styleRuns[newRunIndex + 1].Style.IsSame(style))))
             {
                 CoalescStyleRuns();
             }
@@ -674,8 +739,8 @@ namespace Topten.RichTextKit
                 // Update flag
                 _hasTextDirectionOverrides |= run.Style.TextDirection != TextDirection.Auto;
 
-                // Can run be coalesced?
-                if (run.Style.IsSame(prev.Style))
+                // Can run be coalesced? Never coalesce inline object runs.
+                if (prev.InlineObject == null && run.InlineObject == null && run.Style.IsSame(prev.Style))
                 {
                     // Yes
                     prev.Length += run.Length;

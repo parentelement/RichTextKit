@@ -34,5 +34,11 @@ namespace Topten.RichTextKit
         /// This is a special font run created for the truncation ellipsis.
         /// </summary>
         Ellipsis,
+
+        /// <summary>
+        /// This font run represents an inline object (e.g. an image) associated with
+        /// a U+FFFC Object Replacement Character placeholder in the text stream.
+        /// </summary>
+        InlineObject,
     }
 }

@@ -939,6 +939,56 @@ namespace Topten.RichTextKit.Editor
         }
 
         /// <summary>
+        /// Inserts an inline object at the specified range (replacing any selected text),
+        /// represented as a U+FFFC Object Replacement Character placeholder in the text stream.
+        /// </summary>
+        /// <param name="view">The view initiating the operation</param>
+        /// <param name="range">The range to be replaced (use a collapsed range for pure insertion)</param>
+        /// <param name="obj">The inline object to insert</param>
+        /// <param name="style">The style context for the inline object</param>
+        public void InsertInlineObject(ITextDocumentView view, TextRange range, IInlineObject obj, IStyle style)
+        {
+            if (range.Minimum < 0 || range.Maximum > this.Length)
+                throw new ArgumentException("Invalid range", nameof(range));
+
+            if (IsImeComposing)
+                FinishImeComposition(view);
+
+            var resolvedStyle = DefaultStyle.Apply(style);
+            var styledText = new StyledText();
+            styledText.AddInlineObject(obj, resolvedStyle);
+
+            ReplaceTextInternal(view, range, styledText, EditSemantics.Typing, -1);
+            _undoManager.Seal();
+        }
+
+        /// <summary>
+        /// Forces the layout to be recalculated on the next <see cref="Paint"/> call.
+        /// Use this after mutating an <see cref="IInlineObject"/>'s dimensions in place
+        /// (e.g. during a live image resize drag) so the text flow reflects the new size.
+        /// </summary>
+        public void ForceRelayout()
+        {
+            InvalidateLayout();
+        }
+
+        /// <summary>
+        /// Opens a named undo group so that all edit operations performed while the
+        /// returned disposable is alive are treated as a single undoable unit.
+        /// </summary>
+        /// <example>
+        /// using (_document.BeginEditGroup("Move image"))
+        /// {
+        ///     _document.ReplaceText(...);
+        ///     _document.InsertInlineObject(...);
+        /// }
+        /// </example>
+        public IDisposable BeginEditGroup(string description)
+        {
+            return _undoManager.OpenGroup(description);
+        }
+
+        /// <summary>
         /// Starts and IME composition action
         /// </summary>
         /// <param name="view">The initiating view</param>

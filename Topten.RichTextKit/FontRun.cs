@@ -34,6 +34,11 @@ namespace Topten.RichTextKit
         public FontRunKind RunKind = FontRunKind.Normal;
 
         /// <summary>
+        /// The inline object associated with this font run (when RunKind == FontRunKind.InlineObject).
+        /// </summary>
+        public IInlineObject InlineObject;
+
+        /// <summary>
         /// The style run this typeface run was derived from.
         /// </summary>
         public StyleRun StyleRun;
@@ -106,6 +111,11 @@ namespace Topten.RichTextKit
         {
             if (this.RunKind == FontRunKind.Ellipsis)
                 codePointIndex = 0;
+
+            // Inline objects span exactly one code point; clamp to [Start, End] so that a
+            // mismatched ci.CodePointIndex (e.g. from a snapped caret index) never throws.
+            if (this.RunKind == FontRunKind.InlineObject)
+                codePointIndex = System.Math.Max(Start, System.Math.Min(End, codePointIndex));
 
             // Check in range
             if (codePointIndex < Start || codePointIndex > End)
@@ -589,6 +599,15 @@ namespace Topten.RichTextKit
             if (RunKind == FontRunKind.TrailingWhitespace)
                 return;
 
+            // Paint inline objects
+            if (RunKind == FontRunKind.InlineObject && InlineObject != null)
+            {
+                // Top-left of the object: x = XCoord, y = baseline + Ascent (Ascent is negative = above baseline)
+                var origin = new SKPoint(XCoord, Line.YCoord + Line.BaseLine + Ascent);
+                InlineObject.Paint(ctx.Canvas, origin);
+                return;
+            }
+
             // Text 
             using (var paint = new SKPaint())
             using (var paintHalo = new SKPaint())
@@ -772,6 +791,7 @@ namespace Topten.RichTextKit
         void Reset()
         {
             RunKind = FontRunKind.Normal;
+            InlineObject = null;
             CodePointBuffer = null;
             Style = null;
             Typeface = null;
