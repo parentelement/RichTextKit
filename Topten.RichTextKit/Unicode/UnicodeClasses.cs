@@ -25,10 +25,10 @@ namespace ParentElement.Topten.RichTextKit.Unicode
         static UnicodeClasses()
         {
             // Load trie resources
-            _bidiTrie = new UnicodeTrie(typeof(LineBreaker).Assembly.GetManifestResourceStream("Topten.RichTextKit.Resources.BidiClasses.trie"));
-            _classesTrie = new UnicodeTrie(typeof(LineBreaker).Assembly.GetManifestResourceStream("Topten.RichTextKit.Resources.LineBreakClasses.trie"));
-            _boundaryTrie = new UnicodeTrie(typeof(LineBreaker).Assembly.GetManifestResourceStream("Topten.RichTextKit.Resources.WordBoundaryClasses.trie"));
-            _graphemeTrie= new UnicodeTrie(typeof(LineBreaker).Assembly.GetManifestResourceStream("Topten.RichTextKit.Resources.GraphemeClusterClasses.trie"));
+            _bidiTrie = new UnicodeTrie(typeof(LineBreaker).Assembly.GetManifestResourceStream("ParentElement.Topten.RichTextKit.Resources.BidiClasses.trie"));
+            _classesTrie = new UnicodeTrie(typeof(LineBreaker).Assembly.GetManifestResourceStream("ParentElement.Topten.RichTextKit.Resources.LineBreakClasses.trie"));
+            _boundaryTrie = new UnicodeTrie(typeof(LineBreaker).Assembly.GetManifestResourceStream("ParentElement.Topten.RichTextKit.Resources.WordBoundaryClasses.trie"));
+            _graphemeTrie= new UnicodeTrie(typeof(LineBreaker).Assembly.GetManifestResourceStream("ParentElement.Topten.RichTextKit.Resources.GraphemeClusterClasses.trie"));
         }
 
         static UnicodeTrie _bidiTrie;
