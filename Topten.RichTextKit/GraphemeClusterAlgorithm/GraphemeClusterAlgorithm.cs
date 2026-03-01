@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
-using Topten.RichTextKit.Utils;
+﻿using ParentElement.Topten.RichTextKit.Unicode;
+using ParentElement.Topten.RichTextKit.Utils;
+using System.Collections.Generic;
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit.GraphemeClusterAlgorithm
 {
     static class GraphemeClusterAlgorithm
     {

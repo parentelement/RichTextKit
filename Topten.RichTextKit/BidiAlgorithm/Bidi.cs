@@ -13,13 +13,14 @@
 // License for the specific language governing permissions and limitations 
 // under the License.
 
+using ParentElement.Topten.RichTextKit.Unicode;
+using ParentElement.Topten.RichTextKit.Utils;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Topten.RichTextKit.Utils;
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit.BidiAlgorithm
 {
     /// <summary>
     /// Implementation of Unicode Bidirection Algorithm (UAX #9)

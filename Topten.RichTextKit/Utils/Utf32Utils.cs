@@ -15,7 +15,7 @@
 
 using System.Text;
 
-namespace Topten.RichTextKit.Utils
+namespace ParentElement.Topten.RichTextKit.Utils
 {
     /// <summary>
     /// Miscellaneous utility functions for working with UTF-32 data.

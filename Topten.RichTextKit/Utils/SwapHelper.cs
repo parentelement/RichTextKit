@@ -1,4 +1,4 @@
-﻿namespace Topten.RichTextKit
+﻿namespace ParentElement.Topten.RichTextKit.Utils
 {
     /// <summary>
     /// Helper class to swap two values

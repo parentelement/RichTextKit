@@ -18,11 +18,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Topten.RichTextKit.Editor.UndoUnits;
-using Topten.RichTextKit.Utils;
 using System.Reflection;
+using ParentElement.Topten.RichTextKit.Utils;
+using ParentElement.Topten.RichTextKit.Editor.UndoUnits;
 
-namespace Topten.RichTextKit.Editor
+namespace ParentElement.Topten.RichTextKit.Editor
 {
     /// <summary>
     /// Represents a the document part of a Document/View editor

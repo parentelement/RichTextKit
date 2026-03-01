@@ -16,7 +16,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Topten.RichTextKit.Utils
+namespace ParentElement.Topten.RichTextKit.Utils
 {
     /// <summary>
     /// Extension methods for binary searching an IReadOnlyList collection

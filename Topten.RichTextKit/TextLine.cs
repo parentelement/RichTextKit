@@ -13,13 +13,13 @@
 // License for the specific language governing permissions and limitations 
 // under the License.
 
+using ParentElement.Topten.RichTextKit.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Topten.RichTextKit.Utils;
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit
 {
     /// <summary>
     /// Represents a laid out line of text.

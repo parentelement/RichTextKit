@@ -15,7 +15,7 @@
 
 using System.Runtime.CompilerServices;
 
-namespace Topten.RichTextKit.Utils
+namespace ParentElement.Topten.RichTextKit.Utils
 {
     /// <summary>
     /// Provides a mapped view of an underlying slice array, selecting arbitrary indicies

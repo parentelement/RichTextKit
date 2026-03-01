@@ -18,7 +18,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Topten.RichTextKit.Utils
+namespace ParentElement.Topten.RichTextKit.Utils
 {
     internal class ObjectPool<T> where T : class, new()
     {

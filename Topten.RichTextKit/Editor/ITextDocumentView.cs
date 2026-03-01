@@ -1,4 +1,4 @@
-﻿namespace Topten.RichTextKit.Editor
+﻿namespace ParentElement.Topten.RichTextKit.Editor
 {
     /// <summary>
     /// Interface implemented by views of a TextDocument

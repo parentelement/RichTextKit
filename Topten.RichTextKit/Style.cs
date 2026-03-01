@@ -16,7 +16,7 @@
 using SkiaSharp;
 using System;
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit
 {
     /// <summary>
     /// A basic implementation of IStyle interface provides styling 

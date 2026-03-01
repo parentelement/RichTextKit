@@ -16,7 +16,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit.Utils
 {
     class ArraySliceEnumerator<T> : IEnumerator<T>, IEnumerator
     {

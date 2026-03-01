@@ -16,7 +16,7 @@
 using SkiaSharp;
 using System;
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit
 {
     /// <summary>
     /// Options to control how TextBlock is rendered.

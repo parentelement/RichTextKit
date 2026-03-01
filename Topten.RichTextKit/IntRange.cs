@@ -1,4 +1,4 @@
-﻿namespace Topten.RichTextKit
+﻿namespace ParentElement.Topten.RichTextKit
 {
     internal struct IntRange
     {

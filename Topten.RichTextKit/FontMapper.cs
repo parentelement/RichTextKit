@@ -15,7 +15,7 @@
 
 using SkiaSharp;
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit
 {
     /// <summary>
     /// The FontMapper class is responsible for mapping style typeface information

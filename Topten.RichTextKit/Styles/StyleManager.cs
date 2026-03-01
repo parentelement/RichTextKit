@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Topten.RichTextKit.Styles;
 
-namespace Topten.RichTextKit.Styles
+namespace ParentElement.Topten.RichTextKit.Styles
 {
     //TODO:  Consider ReaderWriterLockSlim since GC can trigger object removal while enumerating
     public class StyleManager : IEnumerable<StyleInfo>

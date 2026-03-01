@@ -15,7 +15,7 @@
 
 using SkiaSharp;
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit
 {
     /// <summary>
     /// A basic implementation of IStyle interface provides styling 
@@ -40,8 +40,8 @@ namespace Topten.RichTextKit
             _haloWidth = default(float);
             _haloBlur = default(float);
             _letterSpacing = default(float);
-            _fontVariant = Topten.RichTextKit.FontVariant.Normal;
-            _textDirection = Topten.RichTextKit.TextDirection.Auto;
+            _fontVariant = RichTextKit.FontVariant.Normal;
+            _textDirection = RichTextKit.TextDirection.Auto;
             _replacementCharacter = '\0';
             
         }

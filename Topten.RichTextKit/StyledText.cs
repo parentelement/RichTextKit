@@ -14,12 +14,12 @@
 // License for the specific language governing permissions and limitations 
 // under the License.
 
+using ParentElement.Topten.RichTextKit.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Topten.RichTextKit.Utils;
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit
 {
     /// <summary>
     /// Represents a block of formatted, laid out and measurable text

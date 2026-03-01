@@ -14,15 +14,15 @@
 // under the License.
 
 using HarfBuzzSharp;
+using ParentElement.Topten.RichTextKit.Utils;
 using SkiaSharp;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Topten.RichTextKit.Utils;
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit.TextShaping
 {
     /// <summary>
     /// Helper class for shaping text

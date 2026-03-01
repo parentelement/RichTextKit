@@ -13,7 +13,9 @@
 // License for the specific language governing permissions and limitations 
 // under the License.
 
-namespace Topten.RichTextKit
+using ParentElement.Topten.RichTextKit.LineBreakAlgorithm;
+
+namespace ParentElement.Topten.RichTextKit.Unicode
 {
     /// <summary>
     /// Helper for looking up unicode character class information

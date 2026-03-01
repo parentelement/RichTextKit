@@ -1,6 +1,6 @@
 ﻿using SkiaSharp;
 
-namespace Topten.RichTextKit.Styles
+namespace ParentElement.Topten.RichTextKit.Styles
 {
     public struct StyleInfo : IStyle
     {

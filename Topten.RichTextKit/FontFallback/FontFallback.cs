@@ -13,12 +13,13 @@
 // License for the specific language governing permissions and limitations 
 // under the License.
 
+using ParentElement.Topten.RichTextKit.Unicode;
+using ParentElement.Topten.RichTextKit.Utils;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
-using Topten.RichTextKit.Utils;
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit.FontFallback
 {
     /// <summary>
     /// Helper to split a run of code points based on a particular typeface

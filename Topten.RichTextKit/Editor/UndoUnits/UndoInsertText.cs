@@ -1,6 +1,7 @@
-﻿using Topten.RichTextKit.Utils;
+﻿using ParentElement.Topten.RichTextKit.LineBreakAlgorithm;
+using ParentElement.Topten.RichTextKit.Utils;
 
-namespace Topten.RichTextKit.Editor.UndoUnits
+namespace ParentElement.Topten.RichTextKit.Editor.UndoUnits
 {
     class UndoInsertText : UndoUnit<TextDocument>
     {

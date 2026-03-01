@@ -16,7 +16,7 @@
 using System;
 using System.IO;
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit.Utils
 {
     static class BinaryReaderExtensions
     {

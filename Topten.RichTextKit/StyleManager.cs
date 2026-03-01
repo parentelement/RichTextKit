@@ -17,7 +17,7 @@ using SkiaSharp;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit
 {
     /// <summary>
     /// Helper class for managing RichTextKit styles.

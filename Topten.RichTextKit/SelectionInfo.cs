@@ -1,6 +1,6 @@
-﻿using Topten.RichTextKit.Editor;
+﻿using ParentElement.Topten.RichTextKit.Editor;
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit
 {
     public readonly struct SelectionInfo
     {

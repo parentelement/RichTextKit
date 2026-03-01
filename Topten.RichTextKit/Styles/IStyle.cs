@@ -13,9 +13,10 @@
 // License for the specific language governing permissions and limitations 
 // under the License.
 
+using ParentElement.Topten.RichTextKit;
 using SkiaSharp;
 
-namespace Topten.RichTextKit.Styles
+namespace ParentElement.Topten.RichTextKit.Styles
 {
     /// <summary>
     /// Provides styling information for a run of text.

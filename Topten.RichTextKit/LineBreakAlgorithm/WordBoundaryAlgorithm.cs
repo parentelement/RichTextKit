@@ -15,10 +15,11 @@
 //
 // Ported from: https://github.com/foliojs/linebreak
 
+using ParentElement.Topten.RichTextKit.Unicode;
+using ParentElement.Topten.RichTextKit.Utils;
 using System.Collections.Generic;
-using Topten.RichTextKit.Utils;
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit.LineBreakAlgorithm
 {
     /// <summary>
     /// Implementation of the word boundary algorithm

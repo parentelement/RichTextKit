@@ -18,7 +18,7 @@ using System.IO;
 
 // Ported from: https://github.com/foliojs/unicode-trie
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit.Unicode
 {
     internal class UnicodeTrieBuilder
     {

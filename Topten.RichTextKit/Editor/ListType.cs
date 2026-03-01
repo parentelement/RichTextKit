@@ -13,7 +13,7 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-namespace Topten.RichTextKit.Editor
+namespace ParentElement.Topten.RichTextKit.Editor
 {
     /// <summary>
     /// Specifies the list style for a paragraph

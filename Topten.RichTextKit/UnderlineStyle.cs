@@ -13,7 +13,7 @@
 // License for the specific language governing permissions and limitations 
 // under the License.
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit
 {
     /// <summary>
     /// Describes the underline style for a run of text

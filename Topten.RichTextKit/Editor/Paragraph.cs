@@ -13,11 +13,11 @@
 // License for the specific language governing permissions and limitations 
 // under the License.
 
+using ParentElement.Topten.RichTextKit.Utils;
 using SkiaSharp;
 using System.Collections.Generic;
-using Topten.RichTextKit.Utils;
 
-namespace Topten.RichTextKit.Editor
+namespace ParentElement.Topten.RichTextKit.Editor
 {
     /// <summary>
     /// Abstract base class for all TextDocument paragraphs

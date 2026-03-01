@@ -14,13 +14,18 @@
 // License for the specific language governing permissions and limitations 
 // under the License.
 
+using ParentElement.Topten.RichTextKit.BidiAlgorithm;
+using ParentElement.Topten.RichTextKit.FontFallback;
+using ParentElement.Topten.RichTextKit.LineBreakAlgorithm;
+using ParentElement.Topten.RichTextKit.TextShaping;
+using ParentElement.Topten.RichTextKit.Unicode;
+using ParentElement.Topten.RichTextKit.Utils;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Topten.RichTextKit.Utils;
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit
 {
     /// <summary>
     /// Represents a block of formatted, laid out and measurable text

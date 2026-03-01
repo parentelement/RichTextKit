@@ -14,13 +14,13 @@
 // License for the specific language governing permissions and limitations 
 // under the License.
 
+using ParentElement.Topten.RichTextKit.Utils;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Topten.RichTextKit.Utils;
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit
 {
     /// <summary>
     /// Represents a font run - a physical sequence of laid glyphs all with

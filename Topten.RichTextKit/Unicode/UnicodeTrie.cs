@@ -13,13 +13,14 @@
 // License for the specific language governing permissions and limitations 
 // under the License.
 
+using ParentElement.Topten.RichTextKit.Utils;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
 
 // Ported from: https://github.com/foliojs/unicode-trie
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit.Unicode
 {
     internal class UnicodeTrie
     {

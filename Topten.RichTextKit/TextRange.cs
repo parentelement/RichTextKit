@@ -15,7 +15,7 @@
 
 using System;
 
-namespace Topten.RichTextKit
+namespace ParentElement.Topten.RichTextKit
 {
     /// <summary>
     /// Represents a range of code points in a text document

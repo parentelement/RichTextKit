@@ -1,4 +1,4 @@
-﻿namespace Topten.RichTextKit.Editor
+﻿namespace ParentElement.Topten.RichTextKit.Editor
 {
     /// <summary>
     /// Provides information about the range of changes to a document

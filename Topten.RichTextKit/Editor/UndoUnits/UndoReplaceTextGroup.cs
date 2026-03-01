@@ -1,6 +1,7 @@
-﻿using Topten.RichTextKit.Utils;
+﻿using ParentElement.Topten.RichTextKit;
+using ParentElement.Topten.RichTextKit.Utils;
 
-namespace Topten.RichTextKit.Editor.UndoUnits
+namespace ParentElement.Topten.RichTextKit.Editor.UndoUnits
 {
     class UndoReplaceTextGroup : UndoGroup<TextDocument>
     {
