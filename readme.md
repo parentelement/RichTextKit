@@ -1,5 +1,5 @@
 # Note
-This is a heavily modified and modernized form of RichTextKit from Topten Software and licensed under the Apache 2.0 license.  Credit goes to the original author.  Here you may find the original website and repository:
+This is a heavily modified and modernized fork of RichTextKit from Topten Software and licensed under the Apache 2.0 license.  Credit goes to the original author.  Here you may find the original website and repository:
 [Topten Software](https://www.toptensoftware.com)
 [Original Source Repository](https://github.com/toptensoftware/RichTextKit)
 
