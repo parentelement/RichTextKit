@@ -5,7 +5,7 @@ This is a heavily modified and modernized fork of RichTextKit from Topten Softwa
 
 [Original Source Repository](https://github.com/toptensoftware/RichTextKit)
 
-This fork forms the basis for implementation in platform specific packages for platforms such as Avalonia, Maui, and Uno.
+This fork forms the basis for implementation in platform specific packages for platforms such as Avalonia, Maui, and Uno.  Namespaces were prependended to prevent collisions.
 
 # RichTextKit
 
