@@ -2,7 +2,7 @@
 using ParentElement.Topten.RichTextKit.Utils;
 using System.Collections.Generic;
 
-namespace ParentElement.Topten.RichTextKit.GraphemeClusterAlgorithm
+namespace ParentElement.Topten.RichTextKit
 {
     static class GraphemeClusterAlgorithm
     {

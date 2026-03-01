@@ -1,21 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;netcoreapp3.1;net10.0</TargetFrameworks>
+    <TargetFrameworks>net10.0</TargetFrameworks>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 	  <LangVersion>11.0</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <TtsCodeSign>True</TtsCodeSign>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/toptensoftware/richtextkit</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/parentelement/RichTextKit</PackageProjectUrl>
     <!--<PackageIcon>nuget-icon.png</PackageIcon>-->
     <PackageTags>rich text, rich, text, Skia, SkiaSharp, Font</PackageTags>
-    <Description>Easy to use rich text rendering for SkiaSharp, including font-fallback, bi-directional text support and more...</Description>
+    <Description>Fork of Topten.RichTextKit. Easy to use rich text rendering for SkiaSharp, including font-fallback, bi-directional text support and more...</Description>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
-    <RepositoryUrl>https://github.com/toptensoftware/richtextkit</RepositoryUrl>
+    <RepositoryUrl>https://github.com/parentelement/RichTextKit</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

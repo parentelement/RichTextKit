@@ -1,6 +1,6 @@
 ﻿using SkiaSharp;
 
-namespace ParentElement.Topten.RichTextKit.FontFallback
+namespace ParentElement.Topten.RichTextKit
 {
     /// <summary>
     /// Provides a mechanism to override the default font fallback character matching

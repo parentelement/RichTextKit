@@ -1,5 +1,4 @@
-﻿using ParentElement.Topten.RichTextKit;
-using ParentElement.Topten.RichTextKit.Utils;
+﻿using ParentElement.Topten.RichTextKit.Utils;
 
 namespace ParentElement.Topten.RichTextKit.Editor.UndoUnits
 {

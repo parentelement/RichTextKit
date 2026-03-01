@@ -15,7 +15,6 @@
 // under the License.
 
 using ParentElement.Topten.RichTextKit.BidiAlgorithm;
-using ParentElement.Topten.RichTextKit.FontFallback;
 using ParentElement.Topten.RichTextKit.LineBreakAlgorithm;
 using ParentElement.Topten.RichTextKit.TextShaping;
 using ParentElement.Topten.RichTextKit.Unicode;

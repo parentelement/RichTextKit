@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Topten.RichTextKit.Styles;
 
 namespace ParentElement.Topten.RichTextKit.Styles
 {

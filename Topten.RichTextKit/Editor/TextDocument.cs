@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using ParentElement.Topten.RichTextKit.Utils;
 using ParentElement.Topten.RichTextKit.Editor.UndoUnits;
 

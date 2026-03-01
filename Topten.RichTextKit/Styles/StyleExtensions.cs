@@ -1,11 +1,4 @@
-﻿using ParentElement.Topten.RichTextKit;
-using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Text;
-
-namespace ParentElement.Topten.RichTextKit.Styles
+﻿namespace ParentElement.Topten.RichTextKit.Styles
 {
     public static class StyleExtensions
     {

@@ -17,7 +17,6 @@
 using ParentElement.Topten.RichTextKit.Utils;
 using SkiaSharp;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 
 namespace ParentElement.Topten.RichTextKit

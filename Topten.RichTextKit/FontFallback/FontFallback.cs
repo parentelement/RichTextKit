@@ -19,7 +19,7 @@ using SkiaSharp;
 using System;
 using System.Collections.Generic;
 
-namespace ParentElement.Topten.RichTextKit.FontFallback
+namespace ParentElement.Topten.RichTextKit
 {
     /// <summary>
     /// Helper to split a run of code points based on a particular typeface

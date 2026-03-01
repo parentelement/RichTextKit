@@ -1,6 +1,6 @@
 ﻿using SkiaSharp;
 
-namespace ParentElement.Topten.RichTextKit.FontFallback
+namespace ParentElement.Topten.RichTextKit
 {
     class DefaultCharacterMatcher : ICharacterMatcher
     {
