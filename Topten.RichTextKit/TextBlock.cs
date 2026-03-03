@@ -333,6 +333,14 @@ namespace ParentElement.Topten.RichTextKit
         private static object _lck = new object();
 
         /// <summary>
+        /// Forces a full layout on the next call to <see cref="Layout"/>, even if no TextBlock
+        /// properties have changed.  Use this when external state that affects layout (such as
+        /// inline object dimensions) may have changed without going through the normal property
+        /// setters.
+        /// </summary>
+        public void ForceRelayout() => InvalidateLayout();
+
+        /// <summary>
         /// Updates the internal layout of the text block
         /// </summary>
         /// <remarks>
