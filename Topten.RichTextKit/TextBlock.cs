@@ -1080,6 +1080,18 @@ namespace ParentElement.Topten.RichTextKit
         }
 
         /// <summary>
+        /// Forces this TextBlock to re-run layout on the next access.
+        /// Use this after externally mutating the inline object that this block hosts
+        /// (e.g. an InlineTable whose height changed), so that the block re-queries
+        /// the object's dimensions before returning <see cref="MeasuredHeight"/>.
+        /// </summary>
+        public void ForceRelayout()
+        {
+            _needsLayout = true;
+            _needsFullLayout = true;
+        }
+
+        /// <summary>
         /// Invalidate only the alignment pass. Called when only Alignment or RenderWidth
         /// changes, allowing FinalizeLines to be re-run without repeating shaping or
         /// line-breaking.
