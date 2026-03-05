@@ -3,12 +3,13 @@
 		<TargetFrameworks>net10.0</TargetFrameworks>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<LangVersion>11.0</LangVersion>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<AssemblyVersion>0.0.1</AssemblyVersion>
+		<FileVersion>0.0.1</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
 		<Title>$(AssemblyName)</Title>
-		<AssemblyVersion>0.0.1</AssemblyVersion>
-		<FileVersion>0.0.1</FileVersion>
 		<Authors>ParentElement, LLC</Authors>
 		<Company>ParentElement, LLC</Company>
 		<PackageId>ParentElement.Topten.RichTextKit</PackageId>
@@ -23,8 +24,13 @@
 		<EnablePackageValidation>true</EnablePackageValidation>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<IsPackable>true</IsPackable>
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="../nuget_icon/icon.png" Pack="true" PackagePath=""/>
+	</ItemGroup>
 
 	<ItemGroup>
 		<None Remove="Resources\BidiClasses.trie" />
@@ -50,5 +56,4 @@
 		<EmbeddedResource Include="Resources\LineBreakClasses.trie" />
 		<EmbeddedResource Include="Resources\WordBoundaryClasses.trie" />
 	</ItemGroup>
-
 </Project>
