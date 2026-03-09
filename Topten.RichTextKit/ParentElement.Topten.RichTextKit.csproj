@@ -6,6 +6,7 @@
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 		<AssemblyVersion>0.0.1</AssemblyVersion>
 		<FileVersion>0.0.1</FileVersion>
+		<Configurations>Debug;Release;Debug_All</Configurations>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
@@ -29,7 +30,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="../nuget_icon/icon.png" Pack="true" PackagePath=""/>
+		<None Include="../nuget_icon/icon.png" Pack="true" PackagePath="" />
 	</ItemGroup>
 
 	<ItemGroup>

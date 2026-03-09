@@ -483,7 +483,7 @@ namespace ParentElement.Topten.RichTextKit
             if (Glyphs.Length == 0)
                 return;
 
-            using (var paint = new SKPaint())
+            using (var font = new SKFont(Typeface, Style.FontSize.Value))
             {
                 float glyphScale = 1;
                 if (Style.FontVariant == FontVariant.SuperScript)
@@ -495,33 +495,25 @@ namespace ParentElement.Topten.RichTextKit
                     glyphScale = 0.65f;
                 }
 
-                paint.TextEncoding = SKTextEncoding.GlyphId;
-                paint.Typeface = Typeface;
-                paint.TextSize = Style.FontSize.Value * glyphScale;
-                paint.SubpixelText = true;
-                paint.IsAntialias = true;
-                paint.LcdRenderText = false;
+                font.Size = Style.FontSize.Value * glyphScale;
+                font.Subpixel = true;
+                font.Edging = SKFontEdging.Antialias;
 
-                unsafe
+                var glyphSlice = Glyphs.Underlying.AsSpan(Glyphs.Start, Glyphs.Length);
+                font.GetGlyphWidths(glyphSlice, out var bounds);
+                if (bounds != null)
                 {
-                    fixed (ushort* pGlyphs = Glyphs.Underlying)
+                    for (int i = 0; i < bounds.Length; i++)
                     {
-                        paint.GetGlyphWidths((IntPtr)(pGlyphs + Start), sizeof(ushort) * Glyphs.Length, out var bounds);
-                        if (bounds != null)
-                        {
-                            for (int i = 0; i < bounds.Length; i++)
-                            {
-                                float gx = GlyphPositions[i].X;
+                        float gx = GlyphPositions[i].X;
 
-                                var loh = -(gx + bounds[i].Left);
-                                if (loh > leftOverhang)
-                                    leftOverhang = loh;
+                        var loh = -(gx + bounds[i].Left);
+                        if (loh > leftOverhang)
+                            leftOverhang = loh;
 
-                                var roh = (gx + bounds[i].Right + 1) - right;
-                                if (roh > rightOverhang) 
-                                    rightOverhang = roh;
-                            }
-                        }
+                        var roh = (gx + bounds[i].Right + 1) - right;
+                        if (roh > rightOverhang)
+                            rightOverhang = roh;
                     }
                 }
             }
